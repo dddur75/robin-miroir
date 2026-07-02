@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Robin Miroir — registre</title>
+<style>
+:root {
+  --papier:#F7F7F3; --encre:#17251E; --trait:#D8DAD2;
+  --sourdine:#5C6660; --accent:#B7791F;
+}
+* { box-sizing:border-box; margin:0; }
+body {
+  background:var(--papier); color:var(--encre);
+  font-family:system-ui, -apple-system, "Segoe UI", sans-serif;
+  padding:20px 16px 40px; max-width:680px; margin:0 auto;
+  font-variant-numeric: tabular-nums;
+}
+.entete { display:flex; justify-content:space-between; align-items:baseline;
+  border-bottom:3px solid var(--encre); padding-bottom:10px; }
+.entete h1 { font-size:1.05rem; letter-spacing:.14em; text-transform:uppercase; }
+.entete .v { font-size:.72rem; color:var(--sourdine); letter-spacing:.08em; }
+.statut { margin:18px 0 6px; font-size:1.02rem; font-weight:700; line-height:1.45;
+  padding-left:14px; border-left:5px solid var(--accent); }
+.bandeau { margin:10px 0 0; font-size:.82rem; color:var(--sourdine);
+  background:#EFEFE8; border:1px solid var(--trait); padding:8px 10px; }
+.grille { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:22px; }
+.carte { background:#FFFFFF; border:1px solid var(--trait); padding:14px 14px 12px; }
+.carte .etiquette { font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--sourdine); }
+.carte .valeur { font-size:2.1rem; font-weight:750; line-height:1.15; margin-top:6px; }
+.carte .sous { font-size:.74rem; color:var(--sourdine); margin-top:4px; }
+.jauge { margin-top:26px; }
+.jauge .titre { font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--sourdine); margin-bottom:8px; }
+.rail { position:relative; height:26px; background:#FFFFFF;
+  border:1.5px solid var(--encre); }
+.rempli { position:absolute; inset:0; width:0.00%; background:var(--accent); }
+.repere { position:absolute; top:-6px; bottom:-6px; width:2px; background:var(--encre); }
+.repere.r100 { left:50%; }
+.legende { display:flex; justify-content:space-between; font-size:.7rem;
+  color:var(--sourdine); margin-top:6px; }
+.ops { margin-top:30px; border-top:1px solid var(--trait); padding-top:12px;
+  font-size:.78rem; color:var(--sourdine); line-height:1.9; }
+.ops b { color:var(--encre); font-weight:650; }
+.devise { margin-top:26px; font-size:.78rem; color:var(--sourdine);
+  font-style:italic; }
+@media (max-width:430px) { .grille { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="entete"><h1>Robin Miroir</h1>
+<span class="v">protocole V1.2 · gelé</span></div>
+
+<p class="statut">🔧 RODAGE — la machine se teste, rien ne compte encore (ouverture officielle le 20/07/2026)</p>
+<div class='bandeau'>Phase de rodage — 0 déclenchement(s) d'essai, couverture Unibet — sur 0 match(s) vus. Rien ne compte avant le 20/07/2026.</div>
+
+<div class="grille">
+  <div class="carte"><div class="etiquette">CLV moyen</div>
+    <div class="valeur">—</div>
+    <div class="sous">sur 0 clôture(s)</div></div>
+  <div class="carte"><div class="etiquette">Déclenchements réglés</div>
+    <div class="valeur">0 / 200</div>
+    <div class="sous">0 en attente de règlement</div></div>
+  <div class="carte"><div class="etiquette">ROI flat</div>
+    <div class="valeur">—</div>
+    <div class="sous">P&amp;L papier +0 u · mise 10 u</div></div>
+  <div class="carte"><div class="etiquette">Écart moyen vs sharp</div>
+    <div class="valeur">—</div>
+    <div class="sous">0 sélections évaluées</div></div>
+</div>
+
+<div class="jauge">
+  <div class="titre">Route vers le verdict</div>
+  <div class="rail"><div class="rempli"></div><div class="repere r100"></div></div>
+  <div class="legende"><span>0</span><span>100 · alerte sécurité</span>
+  <span>200 · verdict</span></div>
+</div>
+
+<div class="ops">
+Couverture Unibet : <b>—</b>
+ · Clôtures manquantes : <b>0</b>
+ · Crédits API restants : <b>—</b><br>
+Dernière capture : <b>—</b>
+ · Dernier règlement : <b>—</b>
+</div>
+
+<p class="devise">Ce système ne prédit rien : il compare deux prix. L'issue la plus
+probable est de prouver que l'edge n'existe pas — et ce sera un succès.</p>
+</body>
+</html>

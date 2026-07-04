@@ -1,68 +1,76 @@
-# 🪞 ROBIN MIROIR — INSTALLATION EN 5 ÉTAPES (~10 minutes, que des clics)
+# 🪞 ROBIN MIROIR V2 — INSTALLATION PAR FICHIER UNIQUE
 
-Tu n'écris **aucune ligne de code**. Tu cliques, la machine fait le reste.
-Prérequis : ton compte GitHub, et le zip `robin-miroir.zip` **décompressé** sur ton ordinateur.
+**Tu ne crées qu'UN SEUL fichier. La machine installe tout le reste toute seule au premier passage** : scripts, registre, dashboard, rapports. Elle se répare et se met à jour seule ensuite.
 
----
-
-## ÉTAPE 1 — Créer le dépôt et déposer les fichiers (3 min)
-
-1. Va sur **github.com** → bouton vert **New** (nouveau dépôt).
-2. Nom du dépôt : `robin-miroir` · Visibilité : **Public** (obligatoire : minutes d'automatisation illimitées + dashboard gratuit).
-3. Ne coche rien d'autre → **Create repository**.
-4. Sur la page qui s'ouvre, clique le lien **uploading an existing file**.
-5. Ouvre le dossier décompressé `robin-miroir` sur ton ordinateur, sélectionne **tout son contenu** et glisse-le dans la page GitHub.
-   - ⚠️ Tu dois voir passer le dossier **`.github`** dans la liste. Sur Mac il est caché : fais `Cmd + Maj + .` pour l'afficher avant de glisser. Sur Windows il est visible normalement.
-6. En bas : **Commit changes**.
-
-## ÉTAPE 2 — Mettre les 2 clés en coffre-fort (2 min)
-
-1. Dans ton dépôt : **Settings** → menu de gauche **Secrets and variables** → **Actions**.
-2. **New repository secret** :
-   - Name : `ODDS_API_KEY` · Secret : *ta clé The Odds API* → **Add secret**
-3. **New repository secret** à nouveau :
-   - Name : `FOOTBALL_DATA_TOKEN` · Secret : *ta clé football-data.org* → **Add secret**
-
-## ÉTAPE 3 — Allumer le dashboard (1 min)
-
-1. **Settings** → menu de gauche **Pages**.
-2. Source : **Deploy from a branch** · Branch : **main** · Dossier : **/docs** → **Save**.
-3. Ton tableau de bord vivra à : `https://TON-PSEUDO.github.io/robin-miroir/` (compte ~2 min après le premier lancement pour la première publication).
-
-## ÉTAPE 4 — Réveiller la machine (1 min)
-
-1. Onglet **Actions** → si un bandeau le demande, clique **I understand my workflows, go ahead and enable them**.
-2. Menu de gauche : **Capture** → bouton **Run workflow** → **Run workflow** (vert).
-3. Attends ~1 min, la ligne passe au ✅. La machine tournera ensuite **toute seule, toutes les 10 minutes, pour toujours**.
-
-## ÉTAPE 5 — Lancer le duel des dévigages (1 min, une seule fois)
-
-1. Onglet **Actions** → menu de gauche : **Labo - Duel des devigages** → **Run workflow**.
-2. À la fin (~2 min), le verdict est écrit dans le fichier `labo/rapport_devig.md` du dépôt. On le lit ensemble à J3 pour geler le champion.
+Ton dépôt `robin-miroir` existe déjà avec des fichiers dedans ? **Parfait, on le garde** — la V2 remplace proprement l'ancien contenu au premier tour, sans rien te demander.
 
 ---
 
-## 🔐 APRÈS L'INSTALLATION — régénère tes 2 clés (M16, 2 min)
+## ÉTAPE 1 — Coller LE fichier (3 min)
 
-Tes clés ont transité en clair dans nos échanges. Par hygiène, une fois les secrets en place :
-1. **The Odds API** : ouvre l'email « your API key » → lien de régénération (ou redemande une clé sur the-odds-api.com) → remplace le secret `ODDS_API_KEY` (Settings → Secrets → crayon).
-2. **football-data.org** : connecte-toi → ton profil → régénère le token → remplace `FOOTBALL_DATA_TOKEN`.
+1. Ouvre ton dépôt `robin-miroir` sur github.com
+2. Bouton **Add file** → **Create new file**
+3. Dans la case du nom, tape **exactement** :
+   ```
+   .github/workflows/robin.yml
+   ```
+   (en tapant les `/`, GitHub crée les dossiers tout seul — tu verras `.github` puis `workflows` apparaître : c'est normal)
+4. Ouvre le fichier **`A_COLLER_robin.yml.txt`** que je t'ai donné → **Ctrl+A** (tout sélectionner) → **Ctrl+C**
+5. Clique dans la grande zone de texte GitHub → **Ctrl+V**
+6. Bouton vert **Commit changes** → confirme **Commit changes**
 
-## 🔔 BONUS (optionnel, 5 min) — alertes Telegram sur ton téléphone
+## ÉTAPE 2 — Les 2 clés (2 min — saute si déjà fait)
 
-Sans ça, tout marche quand même : les alertes restent visibles dans l'onglet Actions (runs rouges + issues) et dans les rapports.
-1. Dans Telegram, cherche **@BotFather** → `/newbot` → suis les 2 questions → copie le **token**.
-2. Écris n'importe quoi à ton nouveau bot (un « salut » suffit).
-3. Ouvre dans ton navigateur : `https://api.telegram.org/botTON_TOKEN/getUpdates` → repère `"chat":{"id": 123456789` → ce nombre est ton **chat_id**.
-4. Ajoute 2 secrets (comme à l'étape 2) : `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID`.
+1. **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+2. Secret 1 → Name : `ODDS_API_KEY` · Secret : ta clé The Odds API → **Add secret**
+3. Secret 2 → Name : `FOOTBALL_DATA_TOKEN` · Secret : ta clé football-data.org → **Add secret**
+
+## ÉTAPE 3 — Regarder la machine s'installer (0 clic obligatoire)
+
+À partir de là, **tout est automatique** — la machine démarre seule dans les 10 minutes. Impatient ? Onglet **Actions** → **Robin Miroir** (menu de gauche) → **Run workflow** → **Run workflow**.
+
+**Au premier passage, la machine :**
+- ✍️ installe ses 20 fichiers (scripts, registre, dashboard)
+- 📊 active GitHub Pages toute seule (si GitHub refuse, elle t'ouvre une issue avec les 3 clics à faire)
+- ✅ t'ouvre une issue « Robin Miroir est installé » avec le lien de ton dashboard
+- 🔑 s'il manque une clé, t'ouvre une issue qui te dit exactement quoi faire — **le run reste vert, rien ne casse**
+
+**Tes vérifications (1 min, juste des yeux) :**
+- Onglet **Actions** : le run « Robin Miroir » est ✅
+- Onglet **Issues** : l'issue « ✅ Robin Miroir est installé » est là, avec le lien du dashboard
+- Le dashboard s'affiche (~2 min après le premier passage)
+
+---
+
+## 🔐 APRÈS (2 min, hygiène) — régénère tes 2 clés
+
+Tes clés ont transité en clair dans nos échanges :
+1. **The Odds API** : redemande une clé sur the-odds-api.com → remplace le secret `ODDS_API_KEY` (Settings → Secrets → crayon ✏️)
+2. **football-data.org** : profil → régénérer le token → remplace `FOOTBALL_DATA_TOKEN`
+La machine prend la nouvelle clé au passage suivant, automatiquement.
+
+## 🔔 BONUS (optionnel, 5 min) — alertes Telegram
+
+Sans ça tout marche : les alertes passent par les issues GitHub et les rapports.
+1. Telegram → **@BotFather** → `/newbot` → copie le **token**
+2. Écris « salut » à ton nouveau bot
+3. Navigateur : `https://api.telegram.org/botTON_TOKEN/getUpdates` → repère `"chat":{"id":123456789` → c'est ton **chat_id**
+4. Ajoute 2 secrets : `TELEGRAM_BOT_TOKEN` et `TELEGRAM_CHAT_ID`
+
+## 🧨 OPTION B — repartir d'un dépôt 100 % neuf (si tu y tiens)
+
+1. Dans l'ancien dépôt : **Settings** → tout en bas → **Delete this repository** → tape le nom → confirme
+2. **New** → nom `robin-miroir` → **Public** → **Create repository**
+3. Le nouveau dépôt propose « create a new file » → reprends l'ÉTAPE 1 ci-dessus
+(Résultat identique à l'Option A — la V2 nettoie tout de toute façon.)
 
 ---
 
 ## Ce que tu verras ensuite (rien à faire)
 
-- **Dashboard** : phrase de statut + 4 chiffres + jauge vers le verdict N = 200.
-- **Dimanche 21h** : rapport hebdo (≤ 10 lignes) sur Telegram et dans `rapports/`.
-- **Jusqu'au 19 juillet** : bandeau **RODAGE** — la machine s'entraîne sur la fin de Coupe du Monde, rien ne compte.
-- **20 juillet** : le registre officiel s'ouvre tout seul.
+- **Dashboard** : phrase de statut, 4 chiffres, jauge vers N = 200, santé des 5 agents (Guetteur, Greffier, Arbitre, Auditeur, Messager)
+- **Chaque nuit** : règlement des paris + contrôle d'intégrité de l'Auditeur
+- **Dimanche soir** : rapport hebdo ≤ 10 lignes
+- **Jusqu'au 19/07** : bandeau RODAGE (Coupe du Monde = banc d'essai, rien ne compte) · **20/07** : registre officiel, tout seul
 
 *Rappel du protocole : l'issue la plus probable est de prouver qu'il n'y a pas d'edge — proprement, pour 0 €. Ce sera un succès.*

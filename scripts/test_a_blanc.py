@@ -37,10 +37,13 @@ KO = T0 + timedelta(minutes=120)          # coup d'envoi dans la fenêtre T-2
 KO_ISO = KO.strftime("%Y-%m-%dT%H:%M:%SZ")
 SPORT = "soccer_fifa_world_cup"
 
-def h2h(home, away, cH, cD, cA, book):
-    return {"key": book, "markets": [{"key": "h2h", "outcomes": [
+def h2h(home, away, cH, cD, cA, book, lu=None):
+    m = {"key": "h2h", "outcomes": [
         {"name": home, "price": cH}, {"name": "Draw", "price": cD},
-        {"name": away, "price": cA}]}]}
+        {"name": away, "price": cA}]}
+    if lu:
+        m["last_update"] = lu
+    return {"key": book, "markets": [m]}
 
 def ev(eid, home, away, books):
     return {"id": eid, "sport_key": SPORT, "commence_time": KO_ISO,
@@ -67,6 +70,12 @@ EVENEMENTS = [
     # E : Unibet absent -> NO_QUOTE (mesure de couverture)
     ev("evE", "CF Absent", "Deportivo Vide",
        [h2h("CF Absent", "Deportivo Vide", 2.00, 3.30, 3.90, "pinnacle")]),
+    # G : cote Unibet périmée (mise à jour il y a 2 h) -> STALE (M19)
+    ev("evG", "FC Figé", "Sporting Gelé",
+       [h2h("FC Figé", "Sporting Gelé", 2.30, 3.40, 3.30, "pinnacle",
+            lu=(T0).strftime("%Y-%m-%dT%H:%M:%SZ")),
+        h2h("FC Figé", "Sporting Gelé", 2.60, 3.30, 3.10, "unibet_fr",
+            lu=(T0 - timedelta(hours=2)).strftime("%Y-%m-%dT%H:%M:%SZ"))]),
 ]
 
 CLOTURE_A = {"id": "evA", "sport_key": SPORT, "commence_time": KO_ISO,
@@ -77,12 +86,23 @@ CLOTURE_D = {"id": "evD", "sport_key": SPORT, "commence_time": KO_ISO,
              "home_team": "Stade Double", "away_team": "Union Choix",
              "bookmakers": [h2h("Stade Double", "Union Choix", 2.85, 3.25, 2.70, "pinnacle")]}
 
-MATCHS_FD = {"matches": [{
-    "utcDate": KO_ISO, "status": "FINISHED",
-    "homeTeam": {"id": 101, "name": "Essai United"},     # fuzzy FORT attendu
-    "awayTeam": {"id": 102, "name": "AC Temoin"},
-    "score": {"fullTime": {"home": 2, "away": 1}},
-}]}
+KO_VIEUX = T0 - timedelta(hours=80)   # pari fantôme vieux de 80 h (test VOID M18)
+
+MATCHS_FD = {"matches": [
+    {
+        "utcDate": KO_ISO, "status": "FINISHED",
+        "homeTeam": {"id": 101, "name": "Essai United"},     # fuzzy FORT attendu
+        "awayTeam": {"id": 102, "name": "AC Temoin"},
+        "score": {"fullTime": {"home": 2, "away": 1}},
+    },
+    {   # même affiche que le pari fantôme, mais 26 h plus tard : REPORTÉ
+        "utcDate": (KO_VIEUX + timedelta(hours=26)).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "status": "SCHEDULED",
+        "homeTeam": {"id": 201, "name": "Vieux FC"},
+        "awayTeam": {"id": 202, "name": "Report United"},
+        "score": {"fullTime": {"home": None, "away": None}},
+    },
+]}
 
 QUOTA = {"x-requests-remaining": "497"}
 
@@ -130,6 +150,7 @@ assert "SUSPECT" in statuts, "M2 non déclenché"
 assert "HORS_BANDE" in statuts, "M1 non déclenché"
 assert "SECOND_PICK" in statuts, "M4 non déclenché"
 assert "NO_QUOTE_UNIBET" in statuts, "mesure de couverture absente"
+assert "STALE" in statuts, "M19 (cote périmée) non déclenché"
 pA = next(p for p in paris if p["event_id"] == "evA")
 pD = next(p for p in paris if p["event_id"] == "evD")
 assert pA["marche"] == "H" and pA["cote_unibet"] == 2.60
@@ -162,30 +183,79 @@ clvA = next(r for r in clot if r["id"] == pA["id"])["clv"]
 assert clvA > 0, "le CLV de la fixture evA devait être positif"
 print(f"   ✔ clôtures evA + evD capturées : evA Pinnacle 2.30 -> 2.15, CLV {clvA:+.2%}")
 
-print("TEST À BLANC — 5) RÈGLEMENT + P&L + MATCHING (M11)")
+print("TEST À BLANC — 5) RÈGLEMENT + P&L + MATCHING (M11) + VOID (M18)")
+# Pari fantôme vieux de 80 h dont le match a été reporté de 26 h -> VOID attendu
+pariV = {
+    "type": "PARI", "id": U.id_pari("evV", "H"), "phase": "RODAGE",
+    "ts_capture": U.iso(KO_VIEUX - timedelta(minutes=120)),
+    "ligue": "Coupe du Monde", "fd_code": "WC", "event_id": "evV",
+    "ko": KO_VIEUX.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    "home": "Vieux FC", "away": "Report United",
+    "marche": "H", "selection": "Vieux FC",
+    "cote_unibet": 2.0, "cote_pinnacle": 1.9, "p_vraie": 0.5,
+    "p_shin": 0.5, "p_mult": 0.5, "methode": "shin", "edge": 0.0,
+    "marge_pinnacle": 0.03, "age_p_min": 1.0, "age_u_min": 1.0,
+    "mise": 10.0, "sport_key": SPORT,
+}
+U.ajouter(U.GRAND_LIVRE, pariV)
 HORLOGE["now"] = KO + timedelta(hours=4)
 reglement.executer()
 regs = [r for r in livre() if r["type"] == "REGLEMENT"]
 regA = next(r for r in regs if r["id"] == pA["id"])
 assert regA["issue"] == "GAGNE" and abs(regA["pnl"] - 16.0) < 1e-9
 assert regA["matching"] in ("FORT", "EXACT")
+regV = next(r for r in regs if r["id"] == pariV["id"])
+assert regV["issue"] == "VOID" and regV["pnl"] == 0.0, "M18 VOID non appliqué"
 mapping = U.charger_json(U.TEAM_MAPPING, {})
 assert mapping, "table de correspondance non mémorisée"
-non_regles = [r for r in regs if r["id"] != pA["id"]]
 print(f"   ✔ evA réglé 2-1 -> GAGNÉ +16.0 u (matching {regA['matching']}), "
-      f"mapping mémorisé ; evD reste UNSETTLED (pas dans la fixture) : "
-      f"{'oui' if not any(r['id'] != pA['id'] for r in regs) else 'non'}")
+      f"mapping mémorisé")
+print(f"   ✔ match reporté -> VOID, mise rendue, exclu de N (M18)")
 
-print("TEST À BLANC — 6) RAPPORT + DASHBOARD")
+print("TEST À BLANC — 6) MÉTRIQUES : VOID hors N, 5 agents présents")
+import metriques
+mm = metriques.calculer()
+rod_m = mm["rodage"]
+assert rod_m["n_regles"] == 1, f"N devait valoir 1 (VOID exclu), obtenu {rod_m['n_regles']}"
+assert rod_m["n_void"] == 1
+assert len(mm["agents"]) == 5
+print(f"   ✔ N = {rod_m['n_regles']} (le VOID ne compte pas), n_void = 1, agents = 5")
+
+print("TEST À BLANC — 7) AUDITEUR (M20) : contrôle d'intégrité")
+import audit
+ok_audit = audit.executer(silencieux=True)
+assert ok_audit is True, "l'Auditeur a trouvé une anomalie sur un livre sain"
+sante = U.charger_json(U.SANTE, {})
+assert sante.get("ok") is True and len(sante.get("checks", [])) >= 10
+print(f"   ✔ {len(sante['checks'])}/{len(sante['checks'])} contrôles verts, "
+      f"sante.json écrit")
+
+print("TEST À BLANC — 8) CHEF D'ORCHESTRE : routage + secret manquant géré")
+import chef
+assert chef.tache_depuis("*/10 * * * *", "auto") == "capture"
+assert chef.tache_depuis("30 1 * * *", "auto") == "reglement"
+assert chef.tache_depuis("0 19 * * 0", "auto") == "rapport"
+assert chef.tache_depuis("", "labo") == "labo"
+jeton_sauve = os.environ.pop("FOOTBALL_DATA_TOKEN")
+os.environ["TACHE"] = "reglement"
+os.environ["SCHEDULE"] = ""
+chef.executer()   # ne doit PAS exploser : issue d'aide + arrêt propre
+os.environ["FOOTBALL_DATA_TOKEN"] = jeton_sauve
+os.environ.pop("TACHE")
+print("   ✔ routage cron->tâche correct ; secret manquant = arrêt propre + aide")
+
+print("TEST À BLANC — 9) RAPPORT + DASHBOARD")
 texte = rapport.construire()
 assert texte.count("\n") <= 11, "rapport > 10 lignes"
 dashboard.generer()
 page = open(os.path.join(U.DOCS, "index.html"), encoding="utf-8").read()
 assert "Robin Miroir" in page and "verdict" in page
-print("   ✔ rapport ≤ 10 lignes ; dashboard généré")
+assert "Guetteur" in page and "Auditeur" in page, "bande des agents absente"
+print("   ✔ rapport ≤ 10 lignes ; dashboard généré avec la bande des 5 agents")
 print("-" * 62)
 print(texte)
 print("=" * 62)
 print(f"TEST À BLANC : TOUT EST VERT ✅   (bac à sable : {BAC})")
-print(json.dumps({"paris": len(paris) , "shadow": len(shadow()),
-                  "clotures": len(clot), "reglements": len(regs)}, indent=2))
+print(json.dumps({"paris": len(paris), "shadow": len(shadow()),
+                  "clotures": len(clot), "reglements": len(regs),
+                  "voids": 1, "checks_audit": len(sante["checks"])}, indent=2))

@@ -84,6 +84,24 @@ def resultat_1n2(match):
     return "H" if h > a else ("A" if a > h else "D"), h, a
 
 
+def _reporte(pari, tous_matchs):
+    """M18 : le match existe (tout statut) sous les MÊMES noms normalisés,
+    mais à un horaire écarté de plus de la tolérance -> c'est un report."""
+    ko_pari = U.parse_iso(pari["ko"])
+    for m in tous_matchs:
+        h = m["homeTeam"].get("name") or m["homeTeam"].get("shortName") or ""
+        a = m["awayTeam"].get("name") or m["awayTeam"].get("shortName") or ""
+        if U.normaliser_equipe(h) == U.normaliser_equipe(pari["home"]) and \
+           U.normaliser_equipe(a) == U.normaliser_equipe(pari["away"]):
+            try:
+                ko_m = U.parse_iso(m["utcDate"])
+            except Exception:
+                continue
+            if abs((ko_m - ko_pari).total_seconds()) > C.TOLERANCE_KO_MIN * 60:
+                return True
+    return False
+
+
 def executer():
     jeton = _jeton()
     etats = U.etat_paris()
@@ -111,16 +129,32 @@ def executer():
     for i, (code, lot) in enumerate(sorted(par_comp.items())):
         kos = [U.parse_iso(e["pari"]["ko"]) for _, e in lot]
         date_de = min(kos).strftime("%Y-%m-%d")
-        date_a = max(kos).strftime("%Y-%m-%d")
+        # fenêtre élargie : un match reporté réapparaît souvent quelques jours après
+        from datetime import timedelta
+        date_a = (max(kos) + timedelta(days=4)).strftime("%Y-%m-%d")
         if i > 0:
             time.sleep(6.5)  # 10 req/min max sur le tier gratuit
-        matchs = [m for m in matchs_de_competition(jeton, code, date_de, date_a)
-                  if m.get("status") == "FINISHED"]
+        tous_matchs = matchs_de_competition(jeton, code, date_de, date_a)
+        matchs = [m for m in tous_matchs if m.get("status") == "FINISHED"]
 
         for bid, e in lot:
             pari = e["pari"]
             match, niveau = apparier(pari, matchs, mapping)
             if match is None:
+                # M18 — VOID : après 72 h, si le match existe sous les MÊMES noms
+                # exacts mais à un AUTRE horaire, c'est un report -> mise rendue,
+                # pari exclu de N. On ne devine toujours pas un score.
+                age_h = (maintenant - U.parse_iso(pari["ko"])).total_seconds() / 3600
+                if age_h >= C.VOID_APRES_H and _reporte(pari, tous_matchs):
+                    U.ajouter(U.GRAND_LIVRE, {
+                        "type": "REGLEMENT", "id": bid, "ts": U.iso(maintenant),
+                        "score": "REPORTE", "resultat": None,
+                        "issue": "VOID", "pnl": 0.0, "matching": "REPORT",
+                        "clv_disponible": e["cloture"] is not None,
+                    })
+                    regles += 1
+                    print(f"[VOID] {pari['home']} - {pari['away']} reporté "
+                          f"-> mise rendue, exclu de N (M18)")
                 continue
             res = resultat_1n2(match)
             if res is None:

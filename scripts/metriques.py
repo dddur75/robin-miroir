@@ -12,13 +12,59 @@ import config as C
 import utils as U
 
 
+def _age_h(ts_iso):
+    if not ts_iso:
+        return None
+    try:
+        return (U.maintenant_utc() - U.parse_iso(ts_iso)).total_seconds() / 3600
+    except Exception:
+        return None
+
+
+def agents_etat(etat, sante):
+    """Santé des 5 agents : OK / RETARD / JAMAIS, avec l'âge de la dernière action.
+    Tolérances larges : on signale un agent en retard, on ne crie pas pour 20 min."""
+    a_cap = _age_h(etat.get("derniere_capture"))
+    a_reg = _age_h(etat.get("dernier_reglement"))
+    a_rap = _age_h(etat.get("dernier_rapport"))
+    a_aud = _age_h(sante.get("ts"))
+
+    def statut(age, tolerance_h):
+        if age is None:
+            return "JAMAIS"
+        return "OK" if age <= tolerance_h else "RETARD"
+
+    livre_ok = True
+    try:
+        U.charger_livre()
+        U.charger_shadow()
+    except Exception:
+        livre_ok = False
+    return [
+        {"nom": "Guetteur", "role": "capture des cotes",
+         "statut": statut(a_cap, 2), "age_h": a_cap},
+        {"nom": "Greffier", "role": "grand livre",
+         "statut": "OK" if livre_ok else "ERREUR", "age_h": a_cap},
+        {"nom": "Arbitre", "role": "règlement des paris",
+         "statut": statut(a_reg, 30), "age_h": a_reg},
+        {"nom": "Auditeur", "role": "contrôle d'intégrité",
+         "statut": ("ANOMALIE" if sante and not sante.get("ok", True)
+                    else statut(a_aud, 30)), "age_h": a_aud},
+        {"nom": "Messager", "role": "rapports et alertes",
+         "statut": statut(a_rap, 24 * 8), "age_h": a_rap},
+    ]
+
+
 def calculer(livre=None, shadow=None):
     etats = U.etat_paris(livre)
     shadow = U.charger_shadow() if shadow is None else shadow
 
     def bloc(phase):
         paris = [e for e in etats.values() if e["pari"]["phase"] == phase]
-        regles = [e for e in paris if e["reglement"] is not None]
+        finis = [e for e in paris if e["reglement"] is not None]
+        # M18 : les VOID (matchs reportés) sont hors test — mise rendue, exclus de N
+        regles = [e for e in finis if e["reglement"]["issue"] in ("GAGNE", "PERDU")]
+        voids = [e for e in finis if e["reglement"]["issue"] == "VOID"]
         clvs = [e["cloture"]["clv"] for e in regles if e["cloture"] is not None]
         pnl = sum(e["reglement"]["pnl"] for e in regles)
         n = len(regles)
@@ -36,6 +82,8 @@ def calculer(livre=None, shadow=None):
         no_quote = sum(1 for r in shadow if r.get("type") == "OBS"
                        and r.get("phase") == phase
                        and r.get("statut") == "NO_QUOTE_UNIBET")
+        stale = sum(1 for r in shadow if r.get("type") == "OBS"
+                    and r.get("phase") == phase and r.get("statut") == "STALE")
         matchs_vus = len({r["event_id"] for r in shadow
                           if r.get("type") == "OBS" and r.get("phase") == phase})
         couverture = (1 - no_quote / matchs_vus) if matchs_vus else None
@@ -43,7 +91,8 @@ def calculer(livre=None, shadow=None):
         return {
             "n_declenches": len(paris),
             "n_regles": n,
-            "n_attente": len(paris) - n,
+            "n_void": len(voids),
+            "n_attente": len(paris) - len(finis),
             "pnl": round(pnl, 2),
             "roi": roi,
             "clv_moyen": clv_moyen,
@@ -51,12 +100,14 @@ def calculer(livre=None, shadow=None):
             "ic95": ic95,
             "ecart_moyen": ecart,
             "obs": len(obs),
+            "stale": stale,
             "matchs_vus": matchs_vus,
             "couverture_unibet": couverture,
             "clotures_manquantes": clot_manquantes,
         }
 
     etat = U.charger_etat()
+    sante = U.charger_json(getattr(U, "SANTE", U.STATE.replace("state.json", "sante.json")), {})
     m = {
         "officiel": bloc("OFFICIEL"),
         "rodage": bloc("RODAGE"),
@@ -64,7 +115,10 @@ def calculer(livre=None, shadow=None):
         "credits": etat.get("credits_restants"),
         "derniere_capture": etat.get("derniere_capture"),
         "dernier_reglement": etat.get("dernier_reglement"),
+        "dernier_rapport": etat.get("dernier_rapport"),
         "delestage": bool(etat.get("delestage_mois")),
+        "sante": sante,
+        "agents": agents_etat(etat, sante),
     }
 
     # Statut M17 — une phrase, lisible en 3 secondes

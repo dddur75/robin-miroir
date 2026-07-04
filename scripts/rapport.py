@@ -47,6 +47,13 @@ def construire():
     if off["clotures_manquantes"]:
         lignes.append(f"⚠️ {off['clotures_manquantes']} clôture(s) manquante(s) — "
                       "fiabilité de capture à surveiller.")
+    if off.get("n_void"):
+        lignes.append(f"{off['n_void']} match(s) reporté(s) -> VOID, hors test (M18).")
+    agents_ko = [a["nom"] for a in m["agents"] if a["statut"] not in ("OK",)]
+    if agents_ko:
+        lignes.append("🤖 Agents à surveiller : " + ", ".join(agents_ko) + ".")
+    else:
+        lignes.append("🤖 Les 5 agents sont opérationnels.")
     if m["credits"] is not None:
         lignes.append(f"Crédits API restants : {m['credits']}"
                       + (" (délestage actif)." if m["delestage"] else "."))
@@ -62,6 +69,9 @@ def executer():
     nom = os.path.join(U.RAPPORTS, f"hebdo_{U.maintenant_utc().strftime('%Y-%m-%d')}.md")
     with open(nom, "w", encoding="utf-8") as f:
         f.write(texte + "\n")
+    etat = U.charger_etat()
+    etat["dernier_rapport"] = U.iso(U.maintenant_utc())
+    U.sauver_etat(etat)
     import dashboard
     dashboard.generer()
 

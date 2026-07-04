@@ -44,6 +44,18 @@ body {
 .ops { margin-top:30px; border-top:1px solid var(--trait); padding-top:12px;
   font-size:.78rem; color:var(--sourdine); line-height:1.9; }
 .ops b { color:var(--encre); font-weight:650; }
+.agents { margin-top:26px; }
+.agents .titre { font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--sourdine); margin-bottom:8px; }
+.agents .ligne { display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; }
+.agent { background:#FFFFFF; border:1px solid var(--trait); padding:8px 6px;
+  text-align:center; font-size:.72rem; }
+.agent b { display:block; font-size:.78rem; }
+.agent small { color:var(--sourdine); font-size:.62rem; line-height:1.3;
+  display:block; margin-top:2px; }
+.pastille { display:inline-block; width:10px; height:10px; border-radius:50%;
+  margin-bottom:4px; }
+@media (max-width:430px) { .agents .ligne { grid-template-columns:repeat(2, 1fr); } }
 .devise { margin-top:26px; font-size:.78rem; color:var(--sourdine);
   font-style:italic; }
 @media (max-width:430px) { .grille { grid-template-columns:1fr; } }
@@ -51,7 +63,7 @@ body {
 </head>
 <body>
 <div class="entete"><h1>Robin Miroir</h1>
-<span class="v">protocole V1.2 · gelé</span></div>
+<span class="v">protocole V2.0 · gelé</span></div>
 
 <p class="statut">🔧 RODAGE — la machine se teste, rien ne compte encore (ouverture officielle le 20/07/2026)</p>
 <div class='bandeau'>Phase de rodage — 0 déclenchement(s) d'essai, couverture Unibet — sur 0 match(s) vus. Rien ne compte avant le 20/07/2026.</div>
@@ -78,11 +90,16 @@ body {
   <span>200 · verdict</span></div>
 </div>
 
+<div class="agents">
+  <div class="titre">Les 5 agents</div>
+  <div class="ligne"><div class='agent'><span class='pastille' style='background:#1F6F50'></span><b>Guetteur</b><small>capture des cotes · OK</small></div><div class='agent'><span class='pastille' style='background:#1F6F50'></span><b>Greffier</b><small>grand livre · OK</small></div><div class='agent'><span class='pastille' style='background:#9AA29C'></span><b>Arbitre</b><small>règlement des paris · JAMAIS</small></div><div class='agent'><span class='pastille' style='background:#9AA29C'></span><b>Auditeur</b><small>contrôle d'intégrité · JAMAIS</small></div><div class='agent'><span class='pastille' style='background:#9AA29C'></span><b>Messager</b><small>rapports et alertes · JAMAIS</small></div></div>
+</div>
+
 <div class="ops">
 Couverture Unibet : <b>—</b>
  · Clôtures manquantes : <b>0</b>
- · Crédits API restants : <b>—</b><br>
-Dernière capture : <b>—</b>
+ · Crédits API restants : <b>500</b><br>
+Dernière capture : <b>04/07 09:51</b>
  · Dernier règlement : <b>—</b>
 </div>
 

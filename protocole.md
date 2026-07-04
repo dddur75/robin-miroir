@@ -1,4 +1,4 @@
-# ROBIN MIROIR — PROTOCOLE PRÉ-ENREGISTRÉ V1.2
+# ROBIN MIROIR — PROTOCOLE PRÉ-ENREGISTRÉ V2.0
 
 **Statut : GELÉ au 4 juillet 2026 (J3).**
 Toute modification d'un paramètre gelé après cette date **remet le compteur du test à zéro**. C'est la règle qui donne sa valeur au résultat.
@@ -59,6 +59,22 @@ Champion par défaut : **Shin** (corrige structurellement le biais favori-outsid
 4. **Règlement** nocturne : football-data.org. Matching équipes (M11) : correspondance mémorisée → sinon EXACT (noms normalisés identiques + KO ± 40 min) → sinon FORT (similarité ≥ 0,85 + KO ± 40 min) → sinon **UNSETTLED, on ne devine jamais** (alerte à 48 h).
 5. **Fiabilité** : Grand Livre append-only (PARI/CLOTURE/REGLEMENT liés par id), ID déterministes (M8), un seul code toutes phases (M7), horodatage 100 % UTC (M10), échec bruyant Telegram + issue GitHub (M9), verrou de concurrence sur l'écriture (M12).
 
+## 6bis. Amendements V2.0 (adoptés avant le gel — conseil élargi)
+
+| # | Règle | Effet |
+|---|-------|-------|
+| M18 | **Match reporté = VOID** | Après 72 h, si le match existe sous les mêmes noms exacts à un autre horaire : mise rendue, pari **exclu de N**. On ne devine jamais un score. |
+| M19 | **Cote périmée = STALE** | Cote Pinnacle ou Unibet mise à jour il y a > 30 min à la capture : loggée en shadow, **jamais pariée**. Une cote figée n'est pas un prix réel. Âges des cotes loggés sur chaque pari et clôture. |
+| M20 | **L'Auditeur** | Contrôle d'intégrité automatique chaque nuit (11 vérifications : unicité des IDs, orphelins, clôtures manquantes, paris en souffrance, fichiers d'état…). Anomalie ⇒ alerte + issue. Ne modifie jamais le Grand Livre. |
+| M21 | **Installation monofichier** | Un seul fichier à créer à la main. Tout le système est embarqué dedans, s'auto-installe au premier passage, se met à jour par numéro de version, **n'écrase jamais les données**. |
+| M22 | **Issues automatiques** | Installation réussie, clé manquante, Pages à activer, anomalie d'audit : la machine ouvre elle-même une issue GitHub qui explique quoi faire. |
+| M23 | **Chef d'orchestre** | Un seul workflow, trois horloges. Le chef route cron → tâche et gère les secrets manquants proprement (run vert + issue d'aide, jamais de crash silencieux). |
+| M24 | **Recette formelle** | L'installateur lui-même est testé : reconstruction vérifiée bit à bit par empreinte SHA-256, idempotence, préservation des données, test à blanc rejoué dans la copie installée. |
+
+**Définition de N (précision V2)** : N compte uniquement les paris réglés **GAGNÉ ou PERDU**. Les VOID (reportés) sont hors test.
+
+**Les 5 agents** : Guetteur (capture) · Greffier (grand livre) · Arbitre (règlement) · Auditeur (intégrité) · Messager (rapports/alertes). Rôles logiciels spécialisés et surveillés — leur santé est affichée sur le dashboard.
+
 ## 7. Calendrier et checkpoints
 
 | Date | Événement |
@@ -83,3 +99,21 @@ Champion par défaut : **Shin** (corrige structurellement le biais favori-outsid
 - Zéro décision en cours de route : tout est pré-enregistré ici.
 - Rapport hebdo ≤ 10 lignes, phrase de statut en tête (M17). Aucune action attendue de David en régime normal.
 - Zéro euro réel avant un GO explicite du conseil **après** le verdict N = 200.
+
+---
+
+## AVENANT V2.0 — adopté avant gel (le gel reste fixé au 4 juillet 2026)
+
+| Règle | Contenu |
+|---|---|
+| **M18** | Match reporté (mêmes équipes, horaire écarté > 40 min, constaté après 72 h) → pari **VOID** : mise rendue, **exclu de N** |
+| **M19** | Cote périmée (dernière mise à jour > 30 min, Pinnacle **ou** Unibet, au moment de la capture) → **STALE** : loggée en shadow, **jamais pariée** |
+| **M20** | **L'Auditeur** : contrôle d'intégrité quotidien (11 vérifications) après le règlement ; anomalie → alerte + issue. Il ne modifie jamais le Grand Livre |
+| **M21** | Installation par **fichier unique** auto-installant, idempotent, versionné ; les données ne sont **jamais** écrasées |
+| **M22** | Issues GitHub automatiques : « installé ✅ », « clé manquante 🔑 » (marche à suivre incluse), « active Pages 📊 » si l'activation auto échoue |
+| **M23** | **Un seul workflow** : le chef d'orchestre route les 3 crons (capture / règlement+audit / rapport) et le lancement manuel |
+| **M24** | Recette formelle de l'installateur : extraction du payload, exécution à vide, empreintes SHA-256, idempotence, préservation des données, test à blanc dans la copie installée |
+
+**Les 5 agents** (rôles logiciels automatisés, pilotés par le chef) : Guetteur (capture) · Greffier (grand livre) · Arbitre (règlement) · Auditeur (intégrité) · Messager (rapports/alertes).
+
+**Paramètres inchangés** : seuil 1,06 · N = 200 · critère de mort CLV ≤ 0 · mise flat 10 u · bankroll fictive 1 000 u · fenêtre de clôture T-15 → T-2. **N ne compte que les paris GAGNÉ/PERDU** (VOID exclus).

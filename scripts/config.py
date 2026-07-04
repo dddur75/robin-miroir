@@ -8,7 +8,12 @@ Le système ne prédit rien : il compare deux prix.
 """
 from datetime import date
 
-VERSION = "1.2"
+VERSION = "2.0"
+
+# ------------------------------------------------------------------
+# LES 5 AGENTS AUTOMATIQUES (rôles logiciels, pilotés par le chef)
+# ------------------------------------------------------------------
+AGENTS = ["Guetteur", "Greffier", "Arbitre", "Auditeur", "Messager"]
 
 # ------------------------------------------------------------------
 # DÉCLENCHEUR (gelé)
@@ -84,3 +89,13 @@ DELAI_REGLEMENT_H = 3        # on ne règle qu'un match fini depuis >= 3 h
 ALERTE_UNSETTLED_H = 48      # pari non réglé depuis 48 h => alerte Telegram
 TOLERANCE_KO_MIN = 40        # écart max coup d'envoi pour apparier deux sources
 SEUIL_FUZZY_FORT = 0.85      # M11 : en dessous => UNSETTLED, on ne devine JAMAIS
+VOID_APRES_H = 72            # M18 : match introuvable au bon horaire après 72 h
+                             #       mais retrouvé à un autre horaire => VOID
+                             #       (reporté), mise rendue, exclu de N
+
+# ------------------------------------------------------------------
+# FRAÎCHEUR DES COTES (M19) — une cote périmée n'est pas un prix réel
+# ------------------------------------------------------------------
+STALE_MINUTES = 30           # cote (Pinnacle ou Unibet) mise à jour il y a
+                             # plus de 30 min au moment de la capture => STALE,
+                             # loggé en shadow, jamais parié

@@ -45,6 +45,16 @@ def generer():
             f"{C.DEBUT_OFFICIEL.strftime('%d/%m/%Y')}.</div>"
         )
 
+    pastille = {"OK": "#1F6F50", "RETARD": "#B7791F", "JAMAIS": "#9AA29C",
+                "ANOMALIE": "#B3362B", "ERREUR": "#B3362B"}
+    agents_html = "".join(
+        f"<div class='agent'><span class='pastille' "
+        f"style='background:{pastille.get(a['statut'], '#9AA29C')}'></span>"
+        f"<b>{a['nom']}</b><small>{a['role']} · {a['statut']}</small></div>"
+        for a in m["agents"]
+    )
+    voids = f" · Reportés (VOID) : <b>{off['n_void']}</b>" if off.get("n_void") else ""
+
     page = f"""<!doctype html>
 <html lang="fr">
 <head>
@@ -91,6 +101,18 @@ body {{
 .ops {{ margin-top:30px; border-top:1px solid var(--trait); padding-top:12px;
   font-size:.78rem; color:var(--sourdine); line-height:1.9; }}
 .ops b {{ color:var(--encre); font-weight:650; }}
+.agents {{ margin-top:26px; }}
+.agents .titre {{ font-size:.68rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--sourdine); margin-bottom:8px; }}
+.agents .ligne {{ display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; }}
+.agent {{ background:#FFFFFF; border:1px solid var(--trait); padding:8px 6px;
+  text-align:center; font-size:.72rem; }}
+.agent b {{ display:block; font-size:.78rem; }}
+.agent small {{ color:var(--sourdine); font-size:.62rem; line-height:1.3;
+  display:block; margin-top:2px; }}
+.pastille {{ display:inline-block; width:10px; height:10px; border-radius:50%;
+  margin-bottom:4px; }}
+@media (max-width:430px) {{ .agents .ligne {{ grid-template-columns:repeat(2, 1fr); }} }}
 .devise {{ margin-top:26px; font-size:.78rem; color:var(--sourdine);
   font-style:italic; }}
 @media (max-width:430px) {{ .grille {{ grid-template-columns:1fr; }} }}
@@ -125,9 +147,14 @@ body {{
   <span>{C.N_VERDICT} · verdict</span></div>
 </div>
 
+<div class="agents">
+  <div class="titre">Les 5 agents</div>
+  <div class="ligne">{agents_html}</div>
+</div>
+
 <div class="ops">
 Couverture Unibet : <b>{_pct(off["couverture_unibet"] if m["phase_courante"] == "OFFICIEL" else rod["couverture_unibet"], False)}</b>
- · Clôtures manquantes : <b>{off["clotures_manquantes"]}</b>
+ · Clôtures manquantes : <b>{off["clotures_manquantes"]}</b>{voids}
  · Crédits API restants : <b>{m["credits"] if m["credits"] is not None else "—"}</b>{" · <b>DÉLESTAGE ACTIF</b>" if m["delestage"] else ""}<br>
 Dernière capture : <b>{_fr(m["derniere_capture"])}</b>
  · Dernier règlement : <b>{_fr(m["dernier_reglement"])}</b>

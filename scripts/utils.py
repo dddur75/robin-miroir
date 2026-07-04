@@ -24,6 +24,8 @@ GRAND_LIVRE = os.path.join(DATA, "grand_livre.jsonl")
 SHADOW = os.path.join(DATA, "shadow.jsonl")
 STATE = os.path.join(DATA, "state.json")
 TEAM_MAPPING = os.path.join(DATA, "team_mapping.json")
+SANTE = os.path.join(DATA, "sante.json")
+VERSION_FICHIER = os.path.join(DATA, "version.json")
 
 # --------------------------------------------------------------- temps (M10)
 def maintenant_utc():
@@ -143,6 +145,31 @@ def telegram(message):
         return True
     except Exception as e:  # la notif ne doit jamais tuer le run
         print(f"[NOTIF] échec Telegram: {e}", file=sys.stderr)
+        return False
+
+
+def creer_issue(titre, corps):
+    """Issue GitHub best-effort, dédupliquée par titre exact (issues ouvertes)."""
+    jeton = os.environ.get("GH_TOKEN")
+    repo = os.environ.get("GH_REPO")
+    if not jeton or not repo:
+        print(f"[ISSUE non envoyée — hors GitHub] {titre}")
+        return False
+    try:
+        import requests
+        entetes = {"Authorization": f"Bearer {jeton}",
+                   "Accept": "application/vnd.github+json"}
+        r = requests.get(f"https://api.github.com/repos/{repo}/issues",
+                         headers=entetes,
+                         params={"state": "open", "per_page": 100}, timeout=20)
+        if r.ok and any(i.get("title") == titre for i in r.json()):
+            return True
+        requests.post(f"https://api.github.com/repos/{repo}/issues",
+                      headers=entetes, timeout=20,
+                      json={"title": titre, "body": corps})
+        return True
+    except Exception as e:
+        print(f"[ISSUE] échec : {e}", file=sys.stderr)
         return False
 
 

@@ -89,7 +89,7 @@ def cotes_evenement(cle, sport_key, event_id, etat):
 
 # --------------------------------------------------------------- extraction
 def _h2h(ev, bookmaker):
-    """Retourne {'H': cote, 'D': cote, 'A': cote} ou None si book absent."""
+    """Retourne ({'H','D','A'}: cotes, last_update ISO ou None), ou (None, None)."""
     for bk in ev.get("bookmakers", []):
         cle_bk = bk.get("key")
         if cle_bk not in C.BOOKMAKERS_AUTORISES:
@@ -110,8 +110,18 @@ def _h2h(ev, bookmaker):
                 elif o["name"].lower() == "draw":
                     cotes["D"] = float(o["price"])
             if len(cotes) == 3:
-                return cotes
-    return None
+                return cotes, (m.get("last_update") or bk.get("last_update"))
+    return None, None
+
+
+def _age_minutes(ts_iso):
+    """Âge d'un horodatage ISO en minutes (None si absent/illisible)."""
+    if not ts_iso:
+        return None
+    try:
+        return (U.maintenant_utc() - U.parse_iso(ts_iso)).total_seconds() / 60.0
+    except Exception:
+        return None
 
 
 # ------------------------------------------------------------ cœur du système
@@ -119,8 +129,8 @@ def evaluer_evenement(ev, ligue_label, fd_code, etat, compteur_jour):
     """Applique le protocole gelé à UN match. Écrit OBS / SHADOW / PARI."""
     ts = U.iso(U.maintenant_utc())
     phase = U.phase_du_jour()
-    pin = _h2h(ev, C.BOOKMAKER_SHARP)
-    uni = _h2h(ev, C.BOOKMAKER_SOFT)
+    pin, lu_pin = _h2h(ev, C.BOOKMAKER_SHARP)
+    uni, lu_uni = _h2h(ev, C.BOOKMAKER_SOFT)
     base_obs = {
         "type": "OBS", "ts": ts, "phase": phase, "ligue": ligue_label,
         "event_id": ev["id"], "ko": ev["commence_time"],
@@ -131,6 +141,17 @@ def evaluer_evenement(ev, ligue_label, fd_code, etat, compteur_jour):
         return 0
     if uni is None:
         U.ajouter(U.SHADOW, dict(base_obs, statut="NO_QUOTE_UNIBET"))
+        return 0
+
+    # M19 — fraîcheur : une cote périmée n'est pas un prix réel, on ne parie pas dessus
+    age_p, age_u = _age_minutes(lu_pin), _age_minutes(lu_uni)
+    if (age_p is not None and age_p > C.STALE_MINUTES) or \
+       (age_u is not None and age_u > C.STALE_MINUTES):
+        U.ajouter(U.SHADOW, dict(
+            base_obs, statut="STALE",
+            age_p_min=round(age_p, 1) if age_p is not None else None,
+            age_u_min=round(age_u, 1) if age_u is not None else None,
+        ))
         return 0
 
     ordre = ["H", "D", "A"]
@@ -196,6 +217,8 @@ def evaluer_evenement(ev, ligue_label, fd_code, etat, compteur_jour):
         "methode": d["methode"],
         "edge": round(edge, 5),
         "marge_pinnacle": round(marge_pin, 5),
+        "age_p_min": round(age_p, 1) if age_p is not None else None,
+        "age_u_min": round(age_u, 1) if age_u is not None else None,
         "mise": C.MISE_FLAT,
     }
     pari["sport_key"] = ev.get("sport_key", "")
@@ -223,10 +246,11 @@ def capturer_clotures(cle, etats_paris, etat):
         if not (C.FENETRE_CLOTURE[1] <= minutes <= C.FENETRE_CLOTURE[0]):
             continue
         ev = cotes_evenement(cle, pari.get("sport_key") or _sport_de(pari), pari["event_id"], etat)
-        pin = _h2h(ev, C.BOOKMAKER_SHARP) if ev else None
+        pin, lu_pin = _h2h(ev, C.BOOKMAKER_SHARP) if ev else (None, None)
         if pin is None:
             print(f"[CLOTURE] Pinnacle indisponible pour {pari['event_id']}")
             continue
+        age_p = _age_minutes(lu_pin)
         ordre = ["H", "D", "A"]
         d = deviger([pin[m] for m in ordre], C.DEVIG_CHAMPION)
         i = ordre.index(pari["marche"])
@@ -238,6 +262,7 @@ def capturer_clotures(cle, etats_paris, etat):
             "p_close": round(p_close, 5),
             "p_close_shin": round(d["shin"][i], 5),
             "p_close_mult": round(d["multiplicatif"][i], 5),
+            "age_p_min": round(age_p, 1) if age_p is not None else None,
             "clv": round(clv, 5),
         })
         n += 1

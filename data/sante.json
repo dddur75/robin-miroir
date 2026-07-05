@@ -1,0 +1,61 @@
+{
+  "checks": [
+    {
+      "detail": "0 enregistrements",
+      "nom": "Grand Livre lisible",
+      "ok": true
+    },
+    {
+      "detail": "3 enregistrements",
+      "nom": "Journal shadow lisible",
+      "ok": true
+    },
+    {
+      "detail": "0 doublon(s)",
+      "nom": "IDs de paris uniques",
+      "ok": true
+    },
+    {
+      "detail": "0",
+      "nom": "Aucune clôture orpheline",
+      "ok": true
+    },
+    {
+      "detail": "0",
+      "nom": "Aucun règlement orphelin",
+      "ok": true
+    },
+    {
+      "detail": "0 doublon(s) bruts",
+      "nom": "Un seul règlement par pari",
+      "ok": true
+    },
+    {
+      "detail": "n < 10, pas encore évaluable",
+      "nom": "Clôtures manquantes ≤ 10 %",
+      "ok": true
+    },
+    {
+      "detail": "0",
+      "nom": "Paris en souffrance (> 48 h)",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "nom": "state.json valide",
+      "ok": true
+    },
+    {
+      "detail": "",
+      "nom": "team_mapping.json valide",
+      "ok": true
+    },
+    {
+      "detail": "499",
+      "nom": "Crédits API connus",
+      "ok": true
+    }
+  ],
+  "ok": true,
+  "ts": "2026-07-05T05:29:17Z"
+}

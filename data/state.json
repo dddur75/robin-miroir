@@ -3,12 +3,9 @@
   "credits_restants": 483,
   "dernier_rapport": "2026-07-19T20:06:54Z",
   "dernier_reglement": "2026-07-20T04:59:24Z",
-  "derniere_capture": "2026-07-20T20:06:13Z",
+  "derniere_capture": "2026-07-20T21:19:56Z",
   "events_traites": {
     "7a49e7985534a5ff3428740d0b630fd7": "2026-07-18T19:23:09Z",
-    "86d6bb6c03425aec2dbe3e631e844d53": "2026-07-17T20:36:23Z",
-    "e105f546df821df13a1c7474f4734943": "2026-07-17T20:36:23Z",
-    "e64cfcc03ee00f71d21b9c99e9c37d2d": "2026-07-17T20:36:23Z",
     "fb30113e43d113f1ace48b8563ba1ee9": "2026-07-19T17:18:12Z"
   }
 }

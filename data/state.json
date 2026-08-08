@@ -1,12 +1,13 @@
 {
   "alertes_unsettled": [],
-  "credits_restants": 491,
+  "credits_restants": 490,
   "dernier_rapport": "2026-08-02T20:08:51Z",
   "dernier_reglement": "2026-08-08T03:04:10Z",
-  "derniere_capture": "2026-08-08T16:48:15Z",
+  "derniere_capture": "2026-08-08T17:15:26Z",
   "events_traites": {
     "1bb1dc592ae4f1017aae3a36901b536b": "2026-08-08T14:35:16Z",
     "237fc150046e34b0affa008be3963438": "2026-08-08T16:48:12Z",
+    "29e2af26e987b4ad178bc40529b3ab80": "2026-08-08T17:15:25Z",
     "2b7bb544e99581a9a45a09cc1dc45b19": "2026-08-08T14:35:16Z",
     "59359b3bddd711f25e4900223b4d5f2d": "2026-08-08T16:48:12Z",
     "5d48e61f140b4e0ad043d9c69c1db4bc": "2026-08-08T12:14:55Z",

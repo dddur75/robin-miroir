@@ -6,7 +6,7 @@
       "ok": true
     },
     {
-      "detail": "343 enregistrements",
+      "detail": "352 enregistrements",
       "nom": "Journal shadow lisible",
       "ok": true
     },
@@ -51,11 +51,11 @@
       "ok": true
     },
     {
-      "detail": "439",
+      "detail": "436",
       "nom": "Crédits API connus",
       "ok": true
     }
   ],
   "ok": true,
-  "ts": "2026-08-21T02:40:20Z"
+  "ts": "2026-08-22T02:31:14Z"
 }

@@ -3,9 +3,6 @@
   "credits_restants": 461,
   "dernier_rapport": "2026-11-22T23:59:37Z",
   "dernier_reglement": "2026-11-27T09:49:51Z",
-  "derniere_capture": "2026-11-27T11:21:35Z",
-  "events_traites": {
-    "50b80f3ebd38bf63663b11ae0afc575b": "2026-11-24T16:08:06Z",
-    "e422af92d1fc06c0a330838c1c2f2e08": "2026-11-24T16:08:06Z"
-  }
+  "derniere_capture": "2026-11-27T20:07:19Z",
+  "events_traites": {}
 }
